@@ -5,10 +5,7 @@ public class IKLookAt : MonoBehaviour
 {
 	protected Animator animator;
 
-	public bool ikActive = false;
 	public Transform lookObj = null;
-	public Transform leftEyeBone = null;
-	public Transform rightEyeBone = null;
 
 	public void Start()
 	{
@@ -19,27 +16,10 @@ public class IKLookAt : MonoBehaviour
 	{
 		if (!animator) return;
 
-		if (!ikActive)
-		{
-			animator.SetLookAtWeight(0);
-			return;
-		}
-
 		if (lookObj != null)
 		{
-			animator.SetLookAtWeight(0.5f);
+			animator.SetLookAtWeight(1f, 0.4f, 0.6f, 1f);
 			animator.SetLookAtPosition(lookObj.position);
-
-			if (leftEyeBone)
-				LookEye(leftEyeBone);
-
-			if (rightEyeBone)
-				LookEye(rightEyeBone);
 		}
-	}
-
-	private void LookEye(Transform eyeBone)
-	{
-		eyeBone.LookAt(lookObj);
 	}
 }
