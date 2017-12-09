@@ -27,6 +27,9 @@ public class Blink : MonoBehaviour
 
 	private IEnumerator DoBlink()
 	{
+		//TODO: Merge with IKLookAt, to include looking at your face and blinking in a logical fashion
+		//TODO: Animate the blinking
+
 		while (true)
 		{
 			yield return new WaitForSeconds(Random.Range(1.0f, 8.0f));
