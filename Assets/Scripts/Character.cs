@@ -1,31 +1,36 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
 public class Character : MonoBehaviour
 {
-	private const float LegSpread = 0.1f;
-	private const float KneesStraightness = 1f;
-
 	private Animator _animator;
 	private Transform _viewTarget;
 
+	// Initialization State
 	private SkinnedMeshRenderer _skinnedMeshRenderer;
 	private float _defaultTopLidValue;
 	private float _defaultBottomLidValue;
 
+	// Current State
+	private float _nextBlink;
+
+	// Controllers
+	private BlinkController _blinkController;
+	private FeetController _feetController;
+	private HandsController _handsController;
+
+	// ReSharper disable InconsistentNaming
+	[Header("Eyes Control")]
 	public int topLidIndex;
 	public int bottomLidIndex;
 	public float topLidCloseValue;
 	public float bottomLidCloseValue;
+	// ReSharper restore InconsistentNaming
 
-	public void Start()
+	public void Awake()
 	{
-		// COMMON
-
 		_animator = GetComponent<Animator>();
 		if(_animator == null) throw new NullReferenceException("An Animator is required");
 
@@ -33,18 +38,22 @@ public class Character : MonoBehaviour
 		if(mainCamera == null) throw new NullReferenceException("A Camera with tag MainCamera is required");
 		_viewTarget = mainCamera.transform;
 
-		// BLINK
-
 		_skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().First(x => x.sharedMesh.blendShapeCount > 0);
 		if(_skinnedMeshRenderer == null) throw new NullReferenceException("A child component with a SkinnedMeshRenderer that contains at least one blend shape is required");
+
+		_blinkController = new BlinkController();
+		_feetController = new FeetController(_animator);
+		_handsController = new HandsController(_animator);
+	}
+
+	public void Start()
+	{
 		_defaultTopLidValue = _skinnedMeshRenderer.GetBlendShapeWeight(topLidIndex);
 		_defaultBottomLidValue = _skinnedMeshRenderer.GetBlendShapeWeight(bottomLidIndex);
 	}
 
 	public void OnAnimatorIK()
 	{
-		if (!_animator || !_viewTarget) return;
-
 		// OTHER TODOS
 		//TODO: Close top lid when looking down
 		//TODO: Tilt head when player's head come close, and close eyes (kissing), potentially blendshapes
@@ -64,83 +73,25 @@ public class Character : MonoBehaviour
 		_animator.SetLookAtWeight(1f, 0.3f, 0.5f, 1f);
 		_animator.SetLookAtPosition(_viewTarget.transform.position);
 
-		// HOLD PLAYER HEAD
-
-		PositionHand(AvatarIKGoal.RightHand, _viewTarget, -1);
-		PositionHand(AvatarIKGoal.LeftHand, _viewTarget, 1);
-
-		// FEET ON GROUND
-
-		var ground = new Vector3(transform.position.x, 0, transform.position.z);
-		var targetLeftFootPosition = ground - new Vector3(-LegSpread, 0, 0);
-		var targetRightFootPosition = ground - new Vector3(LegSpread, 0, 0);
-
-		PositionFoot(AvatarIKGoal.LeftFoot, AvatarIKHint.LeftKnee, targetLeftFootPosition);
-		PositionFoot(AvatarIKGoal.RightFoot, AvatarIKHint.RightKnee, targetRightFootPosition);
+		_handsController.OnHead(_viewTarget);
+		_feetController.OnGround(transform.parent.position, transform.rotation);
 	}
 
-	private const float BlinkDuration = 0.1f;
-	private float _nextBlink;
-	private float _currentBlink;
-	private bool _closing;
-	private bool _opening;
 
 	public void LateUpdate()
 	{
 		if (_nextBlink < Time.time)
 		{
-			_currentBlink = Time.time;
+			_blinkController.Blink();
 			_nextBlink = Time.time + UnityEngine.Random.Range(0.8f, 8f);
-			_closing = true;
 		}
 
-		if (_closing)
+		var result = _blinkController.Update(_defaultTopLidValue, topLidCloseValue, _defaultBottomLidValue, bottomLidCloseValue);
+		if (result.Active)
 		{
-			var topLidValue = Mathf.SmoothStep(_defaultTopLidValue, topLidCloseValue, (Time.time - _currentBlink) / BlinkDuration);
-			_skinnedMeshRenderer.SetBlendShapeWeight(topLidIndex, topLidValue);
-
-			var bottomLidValue = Mathf.SmoothStep(_defaultBottomLidValue, bottomLidCloseValue, (Time.time - _currentBlink) / BlinkDuration);
-			_skinnedMeshRenderer.SetBlendShapeWeight(bottomLidIndex, bottomLidValue);
-
-			if (Math.Abs(topLidValue - topLidCloseValue) < 0.1f)
-			{
-				_currentBlink = Time.time;
-				_closing = false;
-				_opening = true;
-			}
-		} else if (_opening)
-		{
-			var topLidValue = Mathf.SmoothStep(topLidCloseValue, _defaultTopLidValue, (Time.time - _currentBlink) / BlinkDuration);
-			_skinnedMeshRenderer.SetBlendShapeWeight(topLidIndex, topLidValue);
-
-			var bottomLidValue = Mathf.SmoothStep(bottomLidCloseValue, _defaultBottomLidValue, (Time.time - _currentBlink) / BlinkDuration);
-			_skinnedMeshRenderer.SetBlendShapeWeight(bottomLidIndex, bottomLidValue);
-
-			if (Math.Abs(topLidValue - _defaultTopLidValue) < 0.1f)
-			{
-				_opening = false;
-			}
+			_skinnedMeshRenderer.SetBlendShapeWeight(topLidIndex, result.TopLid);
+			_skinnedMeshRenderer.SetBlendShapeWeight(bottomLidIndex, result.BottomLid);
 		}
 	}
 
-	private void PositionHand(AvatarIKGoal goal, Transform target, float side)
-	{
-		_animator.SetIKPositionWeight(goal, 1);
-		_animator.SetIKPosition(goal, target.TransformPoint(new Vector3(.1f * side, -0.02f, 0.03f)));
-
-		_animator.SetIKRotationWeight(goal, 1);
-		_animator.SetIKRotation(goal, Quaternion.LookRotation(target.TransformDirection(Vector3.back), target.TransformDirection(Vector3.right * side)));
-	}
-
-	private void PositionFoot(AvatarIKGoal foot, AvatarIKHint knee, Vector3 position)
-	{
-		_animator.SetIKHintPositionWeight(knee, 1);
-		_animator.SetIKHintPosition(knee, new Vector3(position.x, (_animator.bodyPosition.y - position.y) / 2, position.z + KneesStraightness));
-
-		_animator.SetIKPositionWeight(foot, 1);
-		_animator.SetIKPosition(foot, position);
-
-		_animator.SetIKRotationWeight(foot, 1);
-		_animator.SetIKRotation(foot, transform.rotation);
-	}
 }
