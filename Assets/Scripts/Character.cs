@@ -20,6 +20,8 @@ public class Character : MonoBehaviour
 	private BlinkController _blinkController;
 	private FeetController _feetController;
 	private HandsController _handsController;
+	private PelvisController _pelvisController;
+	private UpperBodyController _upperBodyController;
 
 	// ReSharper disable InconsistentNaming
 	[Header("Eyes Control")]
@@ -41,9 +43,14 @@ public class Character : MonoBehaviour
 		_skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().First(x => x.sharedMesh.blendShapeCount > 0);
 		if(_skinnedMeshRenderer == null) throw new NullReferenceException("A child component with a SkinnedMeshRenderer that contains at least one blend shape is required");
 
-		_blinkController = new BlinkController();
-		_feetController = new FeetController(_animator);
+		var ground = GameObject.FindGameObjectWithTag("Ground");
+		if(ground == null) throw new NullReferenceException("A GameObject with tag Ground is required");
+
+		_pelvisController = new PelvisController(_animator, ground.transform);
+		_feetController = new FeetController(_animator, ground.transform);
 		_handsController = new HandsController(_animator);
+		_upperBodyController = new UpperBodyController(_animator);
+		_blinkController = new BlinkController();
 	}
 
 	public void Start()
@@ -66,16 +73,10 @@ public class Character : MonoBehaviour
 		//TODO: * Contact against boobs
 		//TODO: * Hold hands
 
-		// LOOKING AT PLAYER
-
-		//TODO: Reduce body weight to 0 when you get near the body... otherwise the model avoids you!
-		//TODO: Stop looking when out of reach (e.g. behind or too low)
-		_animator.SetLookAtWeight(1f, 0.3f, 0.5f, 1f);
-		_animator.SetLookAtPosition(_viewTarget.transform.position);
-
+		_pelvisController.OnHead(_viewTarget);
 		_handsController.OnHead(_viewTarget);
-
-		_feetController.OnGround(transform.parent.position, transform.rotation);
+		_feetController.OnGround(transform.rotation);
+		_upperBodyController.Look(_viewTarget, _pelvisController.HumpUnit);
 	}
 
 	public void LateUpdate()
