@@ -74,9 +74,9 @@ public class Character : MonoBehaviour
 		_animator.SetLookAtPosition(_viewTarget.transform.position);
 
 		_handsController.OnHead(_viewTarget);
+
 		_feetController.OnGround(transform.parent.position, transform.rotation);
 	}
-
 
 	public void LateUpdate()
 	{
@@ -93,5 +93,4 @@ public class Character : MonoBehaviour
 			_skinnedMeshRenderer.SetBlendShapeWeight(bottomLidIndex, result.BottomLid);
 		}
 	}
-
 }

@@ -49,9 +49,7 @@ public class BlinkController
 	private BlinkResult Closing(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
 	{
 		var topLidValue = Mathf.SmoothStep(topLidOpened, topLidClosed, (Time.time - _lastEventTime) / BlinkCloseDuration);
-
-		var bottomLidValue =
-			Mathf.SmoothStep(bottomLidOpened, bottomLidClosed, (Time.time - _lastEventTime) / BlinkCloseDuration);
+		var bottomLidValue = Mathf.SmoothStep(bottomLidOpened, bottomLidClosed, (Time.time - _lastEventTime) / BlinkCloseDuration);
 
 		if (Math.Abs(topLidValue - topLidClosed) < 0.01f)
 		{
@@ -86,8 +84,7 @@ public class BlinkController
 	private BlinkResult Opening(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
 	{
 		var topLidValue = Mathf.SmoothStep(topLidClosed, topLidOpened, (Time.time - _lastEventTime) / BlinkOpenDuration);
-		var bottomLidValue =
-			Mathf.SmoothStep(bottomLidClosed, bottomLidOpened, (Time.time - _lastEventTime) / BlinkOpenDuration);
+		var bottomLidValue = Mathf.SmoothStep(bottomLidClosed, bottomLidOpened, (Time.time - _lastEventTime) / BlinkOpenDuration);
 
 		if (Math.Abs(topLidValue - topLidOpened) < 0.01f)
 		{

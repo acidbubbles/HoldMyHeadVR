@@ -31,7 +31,6 @@ public class FeetController
 
 	private void PositionFoot(AvatarIKGoal foot, AvatarIKHint knee, Vector3 position, Quaternion forward)
 	{
-		Debug.Log(_animator.GetIKRotation(foot));
 		_animator.SetIKHintPositionWeight(knee, 1);
 		_animator.SetIKHintPosition(knee, new Vector3(position.x, (_animator.bodyPosition.y - position.y) / 2, position.z + KneesStraightness));
 
