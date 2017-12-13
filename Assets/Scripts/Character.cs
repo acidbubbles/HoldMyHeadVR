@@ -70,7 +70,6 @@ public class Character : MonoBehaviour
 		// OTHER TODOS
 		//TODO: Close top lid when looking down
 		//TODO: Tilt head when player's head come close, and close eyes (kissing), potentially blendshapes
-		//TODO: Hump player's face when coming close to hips (use bodyPosition)
 		//TODO: Move the podium up or down
 		//TODO: Reflections
 		//TODO: Switch lighting

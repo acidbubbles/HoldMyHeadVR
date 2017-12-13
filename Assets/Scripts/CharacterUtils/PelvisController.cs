@@ -2,12 +2,13 @@
 
 public class PelvisController
 {
-	private const float EyesToMouthDistance = 0.05f;
-	private const float EyesToBellyMinDistance = 0.15f;
-	private const float ReachDistance = 0.15f;
+	private const float EyesToMouthDistance = 0.02f;
+	private const float EyesToBellyMinDistance = 0.14f;
+	private const float ReachDistance = 0.25f;
 	private const float ReachDuration = 1.2f;
-	private const float HumpSpeed = 5f;
-	private const float HumpDistance = 0.2f;
+	private const float HumpSpeed = 4f;
+	private const float HumpDistance = 0.12f;
+	private const float BodyUpWiggleRoom = 0.1f;
 
 	private readonly Animator _animator;
 	private readonly Transform _ground;
@@ -27,18 +28,22 @@ public class PelvisController
 		//TODO: Accelerate humping based on reach time
 
 		if (_initialBodyPosition == Vector3.zero)
-			_initialBodyPosition = _animator.bodyPosition;
+			_initialBodyPosition = _animator.bodyPosition - new Vector3(0, BodyUpWiggleRoom, 0);
 
 		var adjustedInitialBodyPosition = _initialBodyPosition + new Vector3(0, _ground.position.y, 0);
 
-		var target = head.position + Vector3.down * EyesToMouthDistance + Vector3.forward * EyesToBellyMinDistance;
+		var target = head.position + head.TransformDirection(Vector3.down) * EyesToMouthDistance;
 
-		var withinReach = Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
+		var withinReach = adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		var humpUnit = (Mathf.Sin(Time.time * HumpSpeed) + 1) / 2f;
 		var humpDistance = humpUnit * HumpDistance;
-		target = new Vector3(target.x, Mathf.Min(adjustedInitialBodyPosition.y, target.y), target.z + humpDistance);
+		target = new Vector3(target.x, target.y, target.z + humpDistance) + head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
+		// Avoid near clipping
+		if (target.z < head.position.z + 0.02f)
+			target.z = head.position.z + 0.02f;
+		GameObject.FindGameObjectWithTag("Tool").transform.position = target;
 
 		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
 
