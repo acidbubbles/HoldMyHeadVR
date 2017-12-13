@@ -29,6 +29,11 @@ public class Character : MonoBehaviour
 	public int bottomLidIndex;
 	public float topLidCloseValue;
 	public float bottomLidCloseValue;
+
+	[Header("Breathing")]
+	public BlendShapeEntry[] BreathingBlendShapes;
+
+	private BreathingController _breathingController;
 	// ReSharper restore InconsistentNaming
 
 	public void Awake()
@@ -50,6 +55,7 @@ public class Character : MonoBehaviour
 		_feetController = new FeetController(_animator, ground.transform);
 		_handsController = new HandsController(_animator);
 		_upperBodyController = new UpperBodyController(_animator);
+		_breathingController = new BreathingController(_skinnedMeshRenderer, BreathingBlendShapes);
 		_blinkController = new BlinkController();
 	}
 
@@ -76,11 +82,13 @@ public class Character : MonoBehaviour
 		_pelvisController.OnHead(_viewTarget);
 		_handsController.OnHead(_viewTarget);
 		_feetController.OnGround(transform.rotation);
-		_upperBodyController.Look(_viewTarget, _pelvisController.HumpUnit);
+		_upperBodyController.Look(_viewTarget, _breathingController.BreatheUnit);
 	}
 
 	public void LateUpdate()
 	{
+		_breathingController.Breathe();
+
 		if (_nextBlink < Time.time)
 		{
 			_blinkController.Blink();

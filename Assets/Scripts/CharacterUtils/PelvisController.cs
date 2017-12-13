@@ -44,8 +44,8 @@ public class PelvisController
 
 		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
 
-		HumpUnit = Mathf.SmoothStep(0f, humpUnit, weight);
+		var weightedHumpUnit = Mathf.SmoothStep(0f, humpUnit, weight);
 
-		_animator.bodyRotation = _animator.rootRotation * Quaternion.AngleAxis(HumpUnit * 20f, Vector3.right);
+		_animator.bodyRotation = _animator.rootRotation * Quaternion.AngleAxis(weightedHumpUnit * 20f, Vector3.right);
 	}
 }
