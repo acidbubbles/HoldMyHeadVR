@@ -45,6 +45,18 @@ public class Character : MonoBehaviour
 	{
 		if (!_animator || !_viewTarget) return;
 
+		// OTHER TODOS
+		//TODO: Close top lid when looking down
+		//TODO: Tilt head when player's head come close, and close eyes (kissing), potentially blendshapes
+		//TODO: Hump player's face when coming close to hips (use bodyPosition)
+		//TODO: Move the podium up or down
+		//TODO: Reflections
+		//TODO: Switch lighting
+		//TODO: Switch character
+		//TODO: See hands
+		//TODO: * Contact against boobs
+		//TODO: * Hold hands
+
 		// LOOKING AT PLAYER
 
 		//TODO: Reduce body weight to 0 when you get near the body... otherwise the model avoids you!
