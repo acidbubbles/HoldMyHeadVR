@@ -2,9 +2,7 @@
 
 public class PelvisController
 {
-	public float HumpUnit;
-
-	private const float EyesToMouthDistance = 0.1f;
+	private const float EyesToMouthDistance = 0.05f;
 	private const float EyesToBellyMinDistance = 0.15f;
 	private const float ReachDistance = 0.15f;
 	private const float ReachDuration = 1.2f;
@@ -39,7 +37,7 @@ public class PelvisController
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		var humpUnit = (Mathf.Sin(Time.time * HumpSpeed) + 1) / 2f;
-		var humpDistance = HumpUnit * HumpDistance;
+		var humpDistance = humpUnit * HumpDistance;
 		target = new Vector3(target.x, Mathf.Min(adjustedInitialBodyPosition.y, target.y), target.z + humpDistance);
 
 		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
@@ -47,5 +45,8 @@ public class PelvisController
 		var weightedHumpUnit = Mathf.SmoothStep(0f, humpUnit, weight);
 
 		_animator.bodyRotation = _animator.rootRotation * Quaternion.AngleAxis(weightedHumpUnit * 20f, Vector3.right);
+
+		// Compensate for body rotation
+		_animator.SetBoneLocalRotation(HumanBodyBones.Hips, Quaternion.Euler(0, -90f, -90f + weightedHumpUnit * 10f));
 	}
 }
