@@ -1,11 +1,9 @@
 ﻿using System;
 
 [Serializable]
-public class BlendShapeEntry
+public class ControllerSettings
 {
 	// ReSharper disable InconsistentNaming
-	public string name;
-	public int index;
-	public float value;
+	public bool enabled = true;
 	// ReSharper restore InconsistentNaming
 }

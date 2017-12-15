@@ -10,14 +10,16 @@ public class PelvisController
 	private const float HumpDistance = 0.12f;
 	private const float BodyUpWiggleRoom = 0.1f;
 
+	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
 	private readonly Transform _ground;
 	private readonly InverseKinematicsWeightHelper _reach;
 
 	private Vector3 _initialBodyPosition;
 
-	public PelvisController(Animator animator, Transform ground)
+	public PelvisController(ControllerSettings settings, Animator animator, Transform ground)
 	{
+		_settings = settings;
 		_animator = animator;
 		_ground = ground;
 		_reach = new InverseKinematicsWeightHelper();
@@ -25,6 +27,10 @@ public class PelvisController
 
 	public void OnHead(Transform head)
 	{
+		if (!_settings.enabled) return;
+
+		//TODO: Broken for Triss
+		//TODO: Figure out a better way to "aim" at the player's mouth
 		//TODO: Accelerate humping based on reach time
 
 		if (_initialBodyPosition == Vector3.zero)

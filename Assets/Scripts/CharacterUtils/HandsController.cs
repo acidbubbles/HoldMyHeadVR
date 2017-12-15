@@ -9,17 +9,21 @@ public class HandsController
 	private const float DepthOffset = 0.03f;
 	private const float LowerShoulderCenter = 0.2f;
 
+	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
 	private readonly InverseKinematicsWeightHelper _reach;
 
-	public HandsController(Animator animator)
+	public HandsController(ControllerSettings settings, Animator animator)
 	{
+		_settings = settings;
 		_animator = animator;
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
 	public void OnHead(Transform head)
 	{
+		if (!_settings.enabled) return;
+
 		var shouldersCenter = (_animator.GetBoneTransform(HumanBodyBones.LeftShoulder).position + _animator.GetBoneTransform(HumanBodyBones.RightShoulder).position) / 2 + Vector3.down * LowerShoulderCenter;
 
 		var withinReach = Vector3.Distance(shouldersCenter, head.position) < ReachDistance;

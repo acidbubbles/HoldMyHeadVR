@@ -24,6 +24,14 @@ public class Character : MonoBehaviour
 	private UpperBodyController _upperBodyController;
 
 	// ReSharper disable InconsistentNaming
+	[Header("Controllers")]
+	public ControllerSettings pelvis;
+	public ControllerSettings upperBody;
+	public ControllerSettings hands;
+	public ControllerSettings feet;
+	public ControllerSettings breathing;
+	public ControllerSettings blink;
+
 	[Header("Eyes Control")]
 	public int topLidIndex;
 	public int bottomLidIndex;
@@ -51,12 +59,12 @@ public class Character : MonoBehaviour
 		var ground = GameObject.FindGameObjectWithTag("Ground");
 		if(ground == null) throw new NullReferenceException("A GameObject with tag Ground is required");
 
-		_pelvisController = new PelvisController(_animator, ground.transform);
-		_feetController = new FeetController(_animator, ground.transform);
-		_handsController = new HandsController(_animator);
-		_upperBodyController = new UpperBodyController(_animator);
-		_breathingController = new BreathingController(_skinnedMeshRenderer, BreathingBlendShapes);
-		_blinkController = new BlinkController();
+		_pelvisController = new PelvisController(pelvis, _animator, ground.transform);
+		_feetController = new FeetController(feet, _animator, ground.transform);
+		_handsController = new HandsController(hands, _animator);
+		_upperBodyController = new UpperBodyController(upperBody, _animator);
+		_breathingController = new BreathingController(breathing, _skinnedMeshRenderer, BreathingBlendShapes);
+		_blinkController = new BlinkController(blink);
 	}
 
 	public void Start()

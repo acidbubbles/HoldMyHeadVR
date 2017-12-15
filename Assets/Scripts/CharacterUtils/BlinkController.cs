@@ -22,8 +22,14 @@ public class BlinkController
 	private const float WaitDuration = 0.05f;
 	private const float BlinkOpenDuration = 0.1f;
 
+	private readonly ControllerSettings _settings;
 	private float _lastEventTime;
 	private BlinkState _state = BlinkState.Inactive;
+
+	public BlinkController(ControllerSettings settings)
+	{
+		_settings = settings;
+	}
 
 	public void Blink()
 	{
@@ -33,6 +39,8 @@ public class BlinkController
 
 	public BlinkResult Update(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
 	{
+		if (!_settings.enabled) return new BlinkResult {Active = false};
+
 		switch (_state)
 		{
 			case BlinkState.Closing:

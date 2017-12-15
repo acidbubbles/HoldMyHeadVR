@@ -6,17 +6,21 @@ public class FeetController
 	private const float KneesStraightness = 50f;
 	private const float GroundOffset = -.15f;
 
+	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
 	private readonly Transform _ground;
 
-	public FeetController(Animator animator, Transform ground)
+	public FeetController(ControllerSettings settings, Animator animator, Transform ground)
 	{
+		_settings = settings;
 		_animator = animator;
 		_ground = ground;
 	}
 
 	public void OnGround(Quaternion forward)
 	{
+		if (!_settings.enabled) return;
+
 		PositionFoot(
 			AvatarIKGoal.LeftFoot,
 			AvatarIKHint.LeftKnee,
