@@ -1,27 +1,33 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+
+[Serializable]
+public class BreathingSettings : ControllerSettings
+{
+	public BlendShapeEntry[] BreathingBlendShapes;
+}
 
 public class BreathingController
 {
 	public float BreatheUnit;
 
-	private readonly ControllerSettings _settings;
+	private readonly BreathingSettings _settings;
 	private readonly SkinnedMeshRenderer _skinnedMeshRenderer;
 	private readonly BlendShapeEntry[] _breathingBlendShapes;
 	private const float BreathingSpeed = 2f;
 
-	public BreathingController(ControllerSettings settings, SkinnedMeshRenderer skinnedMeshRenderer, BlendShapeEntry[] breathingBlendShapes)
+	public BreathingController(BreathingSettings settings, SkinnedMeshRenderer skinnedMeshRenderer)
 	{
 		_settings = settings;
 		_skinnedMeshRenderer = skinnedMeshRenderer;
-		_breathingBlendShapes = breathingBlendShapes;
 	}
 
-	public void Breathe()
+	public void Update()
 	{
-		if (!_settings.enabled) return;
+		if (!_settings.Enabled) return;
 
 		var breatheUnit = (Mathf.Sin(Time.time * BreathingSpeed) + 1) / 2f;
-		foreach (var blendShape in _breathingBlendShapes)
+		foreach (var blendShape in _settings.BreathingBlendShapes)
 		{
 			_skinnedMeshRenderer.SetBlendShapeWeight(blendShape.index, blendShape.value * breatheUnit);
 		}

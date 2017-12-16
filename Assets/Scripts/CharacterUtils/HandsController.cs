@@ -11,26 +11,28 @@ public class HandsController
 
 	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
+	private readonly Transform _head;
 	private readonly InverseKinematicsWeightHelper _reach;
 
-	public HandsController(ControllerSettings settings, Animator animator)
+	public HandsController(ControllerSettings settings, Animator animator, Transform head)
 	{
 		_settings = settings;
 		_animator = animator;
+		_head = head;
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
-	public void OnHead(Transform head)
+	public void OnHead()
 	{
-		if (!_settings.enabled) return;
+		if (!_settings.Enabled) return;
 
 		var shouldersCenter = (_animator.GetBoneTransform(HumanBodyBones.LeftShoulder).position + _animator.GetBoneTransform(HumanBodyBones.RightShoulder).position) / 2 + Vector3.down * LowerShoulderCenter;
 
-		var withinReach = Vector3.Distance(shouldersCenter, head.position) < ReachDistance;
+		var withinReach = Vector3.Distance(shouldersCenter, _head.position) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
-		PositionHand(AvatarIKGoal.RightHand, head, weight, -1);
-		PositionHand(AvatarIKGoal.LeftHand, head, weight, 1);
+		PositionHand(AvatarIKGoal.RightHand, _head, weight, -1);
+		PositionHand(AvatarIKGoal.LeftHand, _head, weight, 1);
 	}
 
 	private void PositionHand(AvatarIKGoal goal, Transform target, float weight, float side)

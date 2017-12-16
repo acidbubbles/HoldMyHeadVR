@@ -19,7 +19,7 @@ public class FeetController
 
 	public void OnGround(Quaternion forward)
 	{
-		if (!_settings.enabled) return;
+		if (!_settings.Enabled) return;
 
 		PositionFoot(
 			AvatarIKGoal.LeftFoot,

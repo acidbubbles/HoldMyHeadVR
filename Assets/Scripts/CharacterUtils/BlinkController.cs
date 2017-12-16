@@ -1,6 +1,15 @@
 ﻿using System;
 using UnityEngine;
 
+[Serializable]
+public class BlinkSettings : ControllerSettings
+{
+	public int TopLidIndex;
+	public int BottomLidIndex;
+	public float TopLidCloseValue;
+	public float BottomLidCloseValue;
+}
+
 public class BlinkController
 {
 	public enum BlinkState
@@ -22,44 +31,73 @@ public class BlinkController
 	private const float WaitDuration = 0.05f;
 	private const float BlinkOpenDuration = 0.1f;
 
-	private readonly ControllerSettings _settings;
+	private readonly BlinkSettings _settings;
+	private readonly SkinnedMeshRenderer _skinnedMeshRenderer;
+
+	private float _topLidOpenedValue;
+	private float _bottomLidOpenedValue;
+
+	private float _nextBlink;
 	private float _lastEventTime;
 	private BlinkState _state = BlinkState.Inactive;
 
-	public BlinkController(ControllerSettings settings)
+	public BlinkController(BlinkSettings settings, SkinnedMeshRenderer skinnedMeshRenderer)
 	{
 		_settings = settings;
+		_skinnedMeshRenderer = skinnedMeshRenderer;
 	}
 
-	public void Blink()
+	public void Start()
+	{
+		_topLidOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.TopLidIndex);
+		_bottomLidOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.BottomLidIndex);
+	}
+
+	public void Update()
+	{
+		if (!_settings.Enabled) return;
+
+		if (_nextBlink < Time.time)
+		{
+			StartBlink();
+			_nextBlink = Time.time + UnityEngine.Random.Range(0.8f, 8f);
+		}
+
+		var result = UpdateBlink();
+		if (result.Active)
+		{
+			_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, result.TopLid);
+			_skinnedMeshRenderer.SetBlendShapeWeight(_settings.BottomLidIndex, result.BottomLid);
+		}
+	}
+
+	private void StartBlink()
 	{
 		_lastEventTime = Time.time;
 		_state = BlinkState.Closing;
 	}
 
-	public BlinkResult Update(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
+	private BlinkResult UpdateBlink()
 	{
-		if (!_settings.enabled) return new BlinkResult {Active = false};
-
 		switch (_state)
 		{
 			case BlinkState.Closing:
-				return Closing(topLidOpened, topLidClosed, bottomLidOpened, bottomLidClosed);
+				return Closing();
 			case BlinkState.Waiting:
-				return Waiting(topLidClosed, bottomLidClosed);
+				return Waiting();
 			case BlinkState.Opening:
-				return Opening(topLidOpened, topLidClosed, bottomLidOpened, bottomLidClosed);
+				return Opening();
 			default:
 				return new BlinkResult { Active = false };
 		}
 	}
 
-	private BlinkResult Closing(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
+	private BlinkResult Closing()
 	{
-		var topLidValue = Mathf.SmoothStep(topLidOpened, topLidClosed, (Time.time - _lastEventTime) / BlinkCloseDuration);
-		var bottomLidValue = Mathf.SmoothStep(bottomLidOpened, bottomLidClosed, (Time.time - _lastEventTime) / BlinkCloseDuration);
+		var topLidValue = Mathf.SmoothStep(_topLidOpenedValue, _settings.TopLidCloseValue, (Time.time - _lastEventTime) / BlinkCloseDuration);
+		var bottomLidValue = Mathf.SmoothStep(_bottomLidOpenedValue, _settings.BottomLidCloseValue, (Time.time - _lastEventTime) / BlinkCloseDuration);
 
-		if (Math.Abs(topLidValue - topLidClosed) < 0.01f)
+		if (Math.Abs(topLidValue - _settings.TopLidCloseValue) < 0.01f)
 		{
 			_lastEventTime = Time.time;
 			_state = BlinkState.Waiting;
@@ -73,7 +111,7 @@ public class BlinkController
 		};
 	}
 
-	private BlinkResult Waiting(float topLidClosed, float bottomLidClosed)
+	private BlinkResult Waiting()
 	{
 		if (_lastEventTime + WaitDuration >= Time.time)
 		{
@@ -84,17 +122,17 @@ public class BlinkController
 		return new BlinkResult
 		{
 			Active = true,
-			TopLid = topLidClosed,
-			BottomLid = bottomLidClosed
+			TopLid = _settings.TopLidCloseValue,
+			BottomLid = _settings.BottomLidCloseValue
 		};
 	}
 
-	private BlinkResult Opening(float topLidOpened, float topLidClosed, float bottomLidOpened, float bottomLidClosed)
+	private BlinkResult Opening()
 	{
-		var topLidValue = Mathf.SmoothStep(topLidClosed, topLidOpened, (Time.time - _lastEventTime) / BlinkOpenDuration);
-		var bottomLidValue = Mathf.SmoothStep(bottomLidClosed, bottomLidOpened, (Time.time - _lastEventTime) / BlinkOpenDuration);
+		var topLidValue = Mathf.SmoothStep(_settings.TopLidCloseValue, _topLidOpenedValue, (Time.time - _lastEventTime) / BlinkOpenDuration);
+		var bottomLidValue = Mathf.SmoothStep(_settings.BottomLidCloseValue, _bottomLidOpenedValue, (Time.time - _lastEventTime) / BlinkOpenDuration);
 
-		if (Math.Abs(topLidValue - topLidOpened) < 0.01f)
+		if (Math.Abs(topLidValue - _topLidOpenedValue) < 0.01f)
 		{
 			_state = BlinkState.Inactive;
 		}

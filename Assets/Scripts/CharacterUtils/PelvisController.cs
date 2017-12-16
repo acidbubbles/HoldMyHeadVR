@@ -12,22 +12,24 @@ public class PelvisController
 
 	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
+	private readonly Transform _head;
 	private readonly Transform _ground;
 	private readonly InverseKinematicsWeightHelper _reach;
 
 	private Vector3 _initialBodyPosition;
 
-	public PelvisController(ControllerSettings settings, Animator animator, Transform ground)
+	public PelvisController(ControllerSettings settings, Animator animator, Transform head, Transform ground)
 	{
 		_settings = settings;
 		_animator = animator;
+		_head = head;
 		_ground = ground;
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
-	public void OnHead(Transform head)
+	public void OnHead()
 	{
-		if (!_settings.enabled) return;
+		if (!_settings.Enabled) return;
 
 		//TODO: Broken for Triss
 		//TODO: Figure out a better way to "aim" at the player's mouth
@@ -38,18 +40,17 @@ public class PelvisController
 
 		var adjustedInitialBodyPosition = _initialBodyPosition + new Vector3(0, _ground.position.y, 0);
 
-		var target = head.position + head.TransformDirection(Vector3.down) * EyesToMouthDistance;
+		var target = _head.position + _head.TransformDirection(Vector3.down) * EyesToMouthDistance;
 
 		var withinReach = adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		var humpUnit = (Mathf.Sin(Time.time * HumpSpeed) + 1) / 2f;
 		var humpDistance = humpUnit * HumpDistance;
-		target = new Vector3(target.x, target.y, target.z + humpDistance) + head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
+		target = new Vector3(target.x, target.y, target.z + humpDistance) + _head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
 		// Avoid near clipping
-		if (target.z < head.position.z + 0.02f)
-			target.z = head.position.z + 0.02f;
-		GameObject.FindGameObjectWithTag("Tool").transform.position = target;
+		if (target.z < _head.position.z + 0.02f)
+			target.z = _head.position.z + 0.02f;
 
 		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
 
