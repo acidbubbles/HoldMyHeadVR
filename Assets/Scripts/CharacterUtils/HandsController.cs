@@ -22,7 +22,7 @@ public class HandsController
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
-	public void OnHead()
+	public void Update()
 	{
 		if (!_settings.Enabled) return;
 

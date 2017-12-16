@@ -28,7 +28,12 @@ public class GameControl : MonoBehaviour
 
 	private void ChangeCharacter()
 	{
-		if (activeCharacter >= characters.Length) return;
+		if (activeCharacter < 0 || activeCharacter >= characters.Length)
+		{
+			activeCharacter = _currentActiveCharacter;
+			return;
+		}
+
 		characters[_currentActiveCharacter].SetActive(false);
 		_currentActiveCharacter = activeCharacter;
 		characters[_currentActiveCharacter].SetActive(true);
@@ -36,7 +41,11 @@ public class GameControl : MonoBehaviour
 
 	private void ChangeLightSet()
 	{
-		if (activeLightsSet >= lightsSets.Length) return;
+		if (activeLightsSet < 0 || activeLightsSet >= lightsSets.Length)
+		{
+			activeLightsSet = _currentActiveLightsSet;
+			return;
+		}
 		lightsSets[_currentActiveLightsSet].SetActive(false);
 		_currentActiveLightsSet = activeLightsSet;
 		var lightsSet = lightsSets[_currentActiveLightsSet];

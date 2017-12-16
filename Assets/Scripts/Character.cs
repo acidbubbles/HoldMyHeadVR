@@ -64,9 +64,9 @@ public class Character : MonoBehaviour
 		//TODO: * Contact against boobs
 		//TODO: * Hold hands
 
-		_pelvisController.OnHead();
-		_handsController.OnHead();
-		_feetController.OnGround(transform.rotation);
+		_pelvisController.Update();
+		_handsController.Update();
+		_feetController.Update();
 		_upperBodyController.Look(_breathingController.BreatheUnit);
 	}
 

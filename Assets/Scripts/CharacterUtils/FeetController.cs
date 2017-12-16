@@ -17,7 +17,7 @@ public class FeetController
 		_ground = ground;
 	}
 
-	public void OnGround(Quaternion forward)
+	public void Update()
 	{
 		if (!_settings.Enabled) return;
 
@@ -25,14 +25,14 @@ public class FeetController
 			AvatarIKGoal.LeftFoot,
 			AvatarIKHint.LeftKnee,
 			_ground.position - new Vector3(-LegSpread, GroundOffset, 0),
-			forward
+			_animator.rootRotation
 		);
 
 		PositionFoot(
 			AvatarIKGoal.RightFoot,
 			AvatarIKHint.RightKnee,
 			_ground.position - new Vector3(LegSpread, GroundOffset, 0),
-			forward
+			_animator.rootRotation
 		);
 	}
 
