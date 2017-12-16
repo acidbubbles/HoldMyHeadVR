@@ -10,13 +10,14 @@ public class PelvisSettings : ControllerSettings
 
 public class PelvisController
 {
+	private const float NearClipping = 0.02f;
 	private const float EyesToMouthDistance = 0.02f;
 	private const float EyesToBellyMinDistance = 0.14f;
 	private const float ReachDistance = 0.25f;
 	private const float ReachDuration = 1.2f;
 	private const float HumpSpeed = 4f;
 	private const float HumpDistance = 0.12f;
-	private const float BodyUpWiggleRoom = 0.1f;
+	private const float BodyUpWiggleRoom = 0.05f;
 
 	private readonly PelvisSettings _settings;
 	private readonly Animator _animator;
@@ -58,8 +59,8 @@ public class PelvisController
 		var humpDistance = humpUnit * HumpDistance;
 		target = new Vector3(target.x, target.y, target.z + humpDistance) + _head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
 		// Avoid near clipping (not sure if this works)
-		if (target.z < _head.position.z + 0.02f)
-			target.z = _head.position.z + 0.02f;
+		if (target.z < _head.position.z + NearClipping)
+			target.z = _head.position.z + NearClipping;
 
 		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
 
