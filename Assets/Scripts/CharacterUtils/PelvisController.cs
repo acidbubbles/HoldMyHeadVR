@@ -1,4 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+
+[Serializable]
+public class PelvisSettings : ControllerSettings
+{
+	public Vector3 HipsForward;
+	public Vector3 HipsThrustCompensation;
+}
 
 public class PelvisController
 {
@@ -10,7 +18,7 @@ public class PelvisController
 	private const float HumpDistance = 0.12f;
 	private const float BodyUpWiggleRoom = 0.1f;
 
-	private readonly ControllerSettings _settings;
+	private readonly PelvisSettings _settings;
 	private readonly Animator _animator;
 	private readonly Transform _head;
 	private readonly Transform _ground;
@@ -18,7 +26,7 @@ public class PelvisController
 
 	private Vector3 _initialBodyPosition;
 
-	public PelvisController(ControllerSettings settings, Animator animator, Transform head, Transform ground)
+	public PelvisController(PelvisSettings settings, Animator animator, Transform head, Transform ground)
 	{
 		_settings = settings;
 		_animator = animator;
@@ -31,9 +39,10 @@ public class PelvisController
 	{
 		if (!_settings.Enabled) return;
 
-		//TODO: Broken for Triss
 		//TODO: Figure out a better way to "aim" at the player's mouth
 		//TODO: Accelerate humping based on reach time
+		//TODO: Allow moving up to the max "standing" position (Wiggle room only for "withinReach")
+		//TODO: Introduce a delay when moving away, but make sure we don't go through when moving forward
 
 		if (_initialBodyPosition == Vector3.zero)
 			_initialBodyPosition = _animator.bodyPosition - new Vector3(0, BodyUpWiggleRoom, 0);
@@ -48,7 +57,7 @@ public class PelvisController
 		var humpUnit = (Mathf.Sin(Time.time * HumpSpeed) + 1) / 2f;
 		var humpDistance = humpUnit * HumpDistance;
 		target = new Vector3(target.x, target.y, target.z + humpDistance) + _head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
-		// Avoid near clipping
+		// Avoid near clipping (not sure if this works)
 		if (target.z < _head.position.z + 0.02f)
 			target.z = _head.position.z + 0.02f;
 
@@ -59,6 +68,6 @@ public class PelvisController
 		_animator.bodyRotation = _animator.rootRotation * Quaternion.AngleAxis(weightedHumpUnit * 20f, Vector3.right);
 
 		// Compensate for body rotation
-		_animator.SetBoneLocalRotation(HumanBodyBones.Hips, Quaternion.Euler(0, -90f, -90f + weightedHumpUnit * 10f));
+		_animator.SetBoneLocalRotation(HumanBodyBones.Hips, Quaternion.Euler(_settings.HipsForward) * Quaternion.Euler(_settings.HipsThrustCompensation * weightedHumpUnit));
 	}
 }

@@ -14,7 +14,7 @@ public class Character : MonoBehaviour
 
 	// ReSharper disable InconsistentNaming
 	[Header("Controllers")]
-	public ControllerSettings pelvis;
+	public PelvisSettings pelvis;
 	public ControllerSettings upperBody;
 	public ControllerSettings hands;
 	public ControllerSettings feet;
