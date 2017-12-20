@@ -6,6 +6,7 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
 	// Controllers
+	private bool _ready = false;
 	private EyesController _eyesController;
 	private FeetController _feetController;
 	private HandsController _handsController;
@@ -49,10 +50,13 @@ public class Character : MonoBehaviour
 	public void Start()
 	{
 		_eyesController.Start();
+		_ready = true;
 	}
 
 	public void OnAnimatorIK()
 	{
+		if (!_ready) return;
+
 		// OTHER TODOS
 		//TODO: Close top lid when looking down
 		//TODO: Tilt head when player's head come close, and close eyes (kissing), potentially blendshapes
@@ -72,6 +76,8 @@ public class Character : MonoBehaviour
 
 	public void LateUpdate()
 	{
+		if (!_ready) return;
+
 		_breathingController.LateUpdate();
 		_eyesController.LateUpdate();
 		_upperBodyController.LateUpdate();
