@@ -6,7 +6,7 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
 	// Controllers
-	private BlinkController _blinkController;
+	private EyesController _eyesController;
 	private FeetController _feetController;
 	private HandsController _handsController;
 	private PelvisController _pelvisController;
@@ -19,7 +19,7 @@ public class Character : MonoBehaviour
 	public ControllerSettings hands;
 	public ControllerSettings feet;
 	public BreathingSettings breathing;
-	public BlinkSettings blink;
+	public EyesSettings eyes;
 	private BreathingController _breathingController;
 	// ReSharper restore InconsistentNaming
 
@@ -43,12 +43,12 @@ public class Character : MonoBehaviour
 		_handsController = new HandsController(hands, animator, viewTarget);
 		_upperBodyController = new UpperBodyController(upperBody, animator, viewTarget);
 		_breathingController = new BreathingController(breathing, skinnedMeshRenderer);
-		_blinkController = new BlinkController(blink, animator, skinnedMeshRenderer);
+		_eyesController = new EyesController(eyes, viewTarget, animator, skinnedMeshRenderer);
 	}
 
 	public void Start()
 	{
-		_blinkController.Start();
+		_eyesController.Start();
 	}
 
 	public void OnAnimatorIK()
@@ -73,7 +73,7 @@ public class Character : MonoBehaviour
 	public void LateUpdate()
 	{
 		_breathingController.LateUpdate();
-		_blinkController.LateUpdate();
+		_eyesController.LateUpdate();
 		_upperBodyController.LateUpdate();
 	}
 }
