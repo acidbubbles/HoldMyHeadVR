@@ -28,8 +28,8 @@ public class Character : MonoBehaviour
 		var animator = GetComponent<Animator>();
 		if(animator == null) throw new NullReferenceException("An Animator is required");
 
-		var mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-		if(mainCamera == null) throw new NullReferenceException("A Camera with tag MainCamera is required");
+		var mainCamera = Camera.main;
+		if(mainCamera == null) throw new NullReferenceException("A main camera is required");
 		var viewTarget = mainCamera.transform;
 
 		var skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().First(x => x.sharedMesh.blendShapeCount > 0);
@@ -43,7 +43,7 @@ public class Character : MonoBehaviour
 		_handsController = new HandsController(hands, animator, viewTarget);
 		_upperBodyController = new UpperBodyController(upperBody, animator, viewTarget);
 		_breathingController = new BreathingController(breathing, skinnedMeshRenderer);
-		_blinkController = new BlinkController(blink, skinnedMeshRenderer);
+		_blinkController = new BlinkController(blink, animator, skinnedMeshRenderer);
 	}
 
 	public void Start()
@@ -67,12 +67,13 @@ public class Character : MonoBehaviour
 		_pelvisController.Update();
 		_handsController.Update();
 		_feetController.Update();
-		_upperBodyController.Look(_breathingController.BreatheUnit);
+		_upperBodyController.Update(_breathingController.BreatheUnit);
 	}
 
 	public void LateUpdate()
 	{
-		_breathingController.Update();
-		_blinkController.Update();
+		_breathingController.LateUpdate();
+		_blinkController.LateUpdate();
+		_upperBodyController.LateUpdate();
 	}
 }

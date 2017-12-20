@@ -11,14 +11,19 @@ public class GameControl : MonoBehaviour
 
 	public GameObject[] lightsSets;
 	public int activeLightsSet;
+
+	public Transform podium;
+	public float podiumHeight;
 	// ReSharper restore InconsistentNaming
 
 	public void Start()
 	{
+		podiumHeight = podium.transform.position.y;
 	}
 
 	public void Update()
 	{
+		podium.transform.position = new Vector3(podium.position.x, podiumHeight, podium.position.z);
 		if (_currentActiveCharacter != activeCharacter)
 			ChangeCharacter();
 

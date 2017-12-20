@@ -13,7 +13,7 @@ public class UpperBodyController
 		_head = head;
 	}
 
-	public void Look(float breatheUnit)
+	public void Update(float breatheUnit)
 	{
 		if (!_settings.Enabled) return;
 
@@ -21,5 +21,9 @@ public class UpperBodyController
 		//TODO: Stop looking when out of reach (e.g. behind or too low)
 		_animator.SetLookAtWeight(1f, 0.2f + 0.1f * breatheUnit, 0.5f, 1f);
 		_animator.SetLookAtPosition(_head.transform.position);
+	}
+
+	public void LateUpdate()
+	{
 	}
 }

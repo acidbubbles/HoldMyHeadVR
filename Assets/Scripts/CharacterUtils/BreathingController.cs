@@ -22,7 +22,7 @@ public class BreathingController
 		_skinnedMeshRenderer = skinnedMeshRenderer;
 	}
 
-	public void Update()
+	public void LateUpdate()
 	{
 		if (!_settings.Enabled) return;
 

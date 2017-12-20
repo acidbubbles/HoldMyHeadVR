@@ -9,8 +9,8 @@ public class ToolControl : MonoBehaviour
 
 	public void Start()
 	{
-		var mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-		if (mainCamera == null) throw new NullReferenceException("A Camera with tag MainCamera is required");
+		var mainCamera = Camera.main;
+		if (mainCamera == null) throw new NullReferenceException("A main Camera is required");
 		_hmd = mainCamera.transform;
 	}
 

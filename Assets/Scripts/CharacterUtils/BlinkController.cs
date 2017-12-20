@@ -8,16 +8,20 @@ public class BlinkSettings : ControllerSettings
 	public int BottomLidIndex;
 	public float TopLidCloseValue;
 	public float BottomLidCloseValue;
+	public float LeftEyeForwardEuleurX;
 }
 
 public class BlinkController
 {
-	public enum BlinkState
+	public enum State
 	{
 		Inactive,
-		Closing,
-		Waiting,
-		Opening,
+		BlinkClosing,
+		BlinkWaiting,
+		BlinkOpening,
+		LookingDown,
+		LookingWait,
+		LookingUp
 	}
 
 	public struct BlinkResult
@@ -27,121 +31,181 @@ public class BlinkController
 		public float BottomLid;
 	}
 
-	private const float BlinkCloseDuration = 0.05f;
-	private const float WaitDuration = 0.05f;
-	private const float BlinkOpenDuration = 0.1f;
+	private const float MinTimeBetweenEvents = 0.8f;
+	private const float MaxTimeBetweenEvents = 8f;
+	private const float BlinkClosingDuration = 0.05f;
+	private const float BlinkWaitingDuration = 0.05f;
+	private const float BlinkOpeningDuration = 0.1f;
+	private const float LookingDownAngle = 6f;
+	private const float LookingDownDuration = 0.3f;
+	private const float LookingWaitDuration = 0.5f;
+	private const float LookingUpDuration = 0.1f;
+	private const int LookDownToBlinkRatio = 4;
 
 	private readonly BlinkSettings _settings;
+	private readonly Animator _animator;
 	private readonly SkinnedMeshRenderer _skinnedMeshRenderer;
 
 	private float _topLidOpenedValue;
 	private float _bottomLidOpenedValue;
+	private float _topLidFullOpenValue;
 
-	private float _nextBlink;
+	private float _nextStartTime;
 	private float _lastEventTime;
-	private BlinkState _state = BlinkState.Inactive;
+	private State _state = State.Inactive;
 
-	public BlinkController(BlinkSettings settings, SkinnedMeshRenderer skinnedMeshRenderer)
+	public BlinkController(BlinkSettings settings, Animator animator, SkinnedMeshRenderer skinnedMeshRenderer)
 	{
 		_settings = settings;
+		_animator = animator;
 		_skinnedMeshRenderer = skinnedMeshRenderer;
 	}
 
 	public void Start()
 	{
-		_topLidOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.TopLidIndex);
+		_topLidOpenedValue = _topLidFullOpenValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.TopLidIndex);
 		_bottomLidOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.BottomLidIndex);
 	}
 
-	public void Update()
+	public void LateUpdate()
 	{
 		if (!_settings.Enabled) return;
 
-		if (_nextBlink < Time.time)
-		{
-			StartBlink();
-			_nextBlink = Time.time + UnityEngine.Random.Range(0.8f, 8f);
-		}
-
-		var result = UpdateBlink();
-		if (result.Active)
-		{
-			_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, result.TopLid);
-			_skinnedMeshRenderer.SetBlendShapeWeight(_settings.BottomLidIndex, result.BottomLid);
-		}
-	}
-
-	private void StartBlink()
-	{
-		_lastEventTime = Time.time;
-		_state = BlinkState.Closing;
-	}
-
-	private BlinkResult UpdateBlink()
-	{
 		switch (_state)
 		{
-			case BlinkState.Closing:
-				return Closing();
-			case BlinkState.Waiting:
-				return Waiting();
-			case BlinkState.Opening:
-				return Opening();
-			default:
-				return new BlinkResult { Active = false };
+			case State.Inactive:
+				LidsAdjust();
+				Inactive();
+				break;
+			case State.BlinkClosing:
+				LidsAdjust();
+				BlinkClosing();
+				break;
+			case State.BlinkWaiting:
+				LidsAdjust();
+				BlinkWaiting();
+				break;
+			case State.BlinkOpening:
+				LidsAdjust();
+				BlinkOpening();
+				break;
+			case State.LookingDown:
+				LookingDown();
+				LidsAdjust();
+				break;
+			case State.LookingWait:
+				LookingWait();
+				LidsAdjust();
+				break;
+			case State.LookingUp:
+				LookingUp();
+				LidsAdjust();
+				break;
 		}
 	}
 
-	private BlinkResult Closing()
+	private void Inactive()
 	{
-		var topLidValue = Mathf.SmoothStep(_topLidOpenedValue, _settings.TopLidCloseValue, (Time.time - _lastEventTime) / BlinkCloseDuration);
-		var bottomLidValue = Mathf.SmoothStep(_bottomLidOpenedValue, _settings.BottomLidCloseValue, (Time.time - _lastEventTime) / BlinkCloseDuration);
+		var time = Time.time;
+		if (_nextStartTime > time) return;
 
-		if (Math.Abs(topLidValue - _settings.TopLidCloseValue) < 0.01f)
-		{
-			_lastEventTime = Time.time;
-			_state = BlinkState.Waiting;
-		}
-
-		return new BlinkResult
-		{
-			Active = true,
-			TopLid = topLidValue,
-			BottomLid = bottomLidValue
-		};
+		_lastEventTime = time;
+		_nextStartTime = time + UnityEngine.Random.Range(MinTimeBetweenEvents, MaxTimeBetweenEvents);
+		_state = UnityEngine.Random.Range(0, LookDownToBlinkRatio) < 1
+			? State.LookingDown
+			: State.BlinkClosing;
 	}
 
-	private BlinkResult Waiting()
+	private void LidsAdjust()
 	{
-		if (_lastEventTime + WaitDuration >= Time.time)
-		{
-			_lastEventTime = Time.time;
-			_state = BlinkState.Opening;
-		}
+		const float maxAngleDiff = 20f;
+		const float maxLidClose = 0.6f;
+		var leftEyeLookAngle = _animator.GetBoneTransform(HumanBodyBones.LeftEye).localEulerAngles.x;
+		Debug.Log("1 (angle): " + leftEyeLookAngle);
+		leftEyeLookAngle = (leftEyeLookAngle + _settings.LeftEyeForwardEuleurX) % 360;
+		if (leftEyeLookAngle > 180) leftEyeLookAngle = leftEyeLookAngle - 360;
+		Debug.Log("2: (adjust)" + leftEyeLookAngle);
 
-		return new BlinkResult
-		{
-			Active = true,
-			TopLid = _settings.TopLidCloseValue,
-			BottomLid = _settings.BottomLidCloseValue
-		};
+		var ratio = Math.Min(Math.Abs(leftEyeLookAngle), maxAngleDiff) / maxAngleDiff;
+		Debug.Log("3 (ratio): " + leftEyeLookAngle);
+		_topLidOpenedValue = _topLidFullOpenValue + (_settings.TopLidCloseValue - _topLidFullOpenValue) * (maxLidClose * ratio);
+		Debug.Log("4 (value): " + _topLidOpenedValue);
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, _topLidOpenedValue);
 	}
 
-	private BlinkResult Opening()
+	private void BlinkClosing()
 	{
-		var topLidValue = Mathf.SmoothStep(_settings.TopLidCloseValue, _topLidOpenedValue, (Time.time - _lastEventTime) / BlinkOpenDuration);
-		var bottomLidValue = Mathf.SmoothStep(_settings.BottomLidCloseValue, _bottomLidOpenedValue, (Time.time - _lastEventTime) / BlinkOpenDuration);
+		var t = T(BlinkClosingDuration);
+		var topLidValue = Mathf.SmoothStep(_topLidOpenedValue, _settings.TopLidCloseValue, t);
+		var bottomLidValue = Mathf.SmoothStep(_bottomLidOpenedValue, _settings.BottomLidCloseValue, t);
 
-		if (Math.Abs(topLidValue - _topLidOpenedValue) < 0.01f)
-		{
-			_state = BlinkState.Inactive;
-		}
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, topLidValue);
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.BottomLidIndex, bottomLidValue);
 
-		return new BlinkResult
-		{
-			Active = true,
-			TopLid = topLidValue,
-			BottomLid = bottomLidValue
-		};
+		UpdateStateTiming(BlinkClosingDuration, State.BlinkWaiting);
+	}
+
+	private void BlinkWaiting()
+	{
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, _settings.TopLidCloseValue);
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.BottomLidIndex, _settings.BottomLidCloseValue);
+
+		UpdateStateTiming(BlinkWaitingDuration, State.BlinkOpening);
+	}
+
+	private void BlinkOpening()
+	{
+		var t = T(BlinkOpeningDuration);
+		var topLidValue = Mathf.SmoothStep(_settings.TopLidCloseValue, _topLidOpenedValue, t);
+		var bottomLidValue = Mathf.SmoothStep(_settings.BottomLidCloseValue, _bottomLidOpenedValue, t);
+
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.TopLidIndex, topLidValue);
+		_skinnedMeshRenderer.SetBlendShapeWeight(_settings.BottomLidIndex, bottomLidValue);
+
+		UpdateStateTiming(BlinkOpeningDuration, State.Inactive);
+	}
+
+	private void LookingDown()
+	{
+		var t = T(LookingDownDuration);
+		var lookDownAngle = Mathf.SmoothStep(0, LookingDownAngle, t);
+
+		_animator.GetBoneTransform(HumanBodyBones.LeftEye).Rotate(lookDownAngle, 0, 0);
+		_animator.GetBoneTransform(HumanBodyBones.RightEye).Rotate(lookDownAngle, 0, 0);
+
+		UpdateStateTiming(LookingDownDuration, State.LookingWait);
+	}
+
+	private void LookingWait()
+	{
+		_animator.GetBoneTransform(HumanBodyBones.LeftEye).Rotate(LookingDownAngle, 0, 0);
+		_animator.GetBoneTransform(HumanBodyBones.RightEye).Rotate(LookingDownAngle, 0, 0);
+
+		UpdateStateTiming(LookingWaitDuration, State.LookingUp);
+	}
+
+	private void LookingUp()
+	{
+		var t = T(LookingUpDuration);
+		var lookDownAngle = Mathf.SmoothStep(LookingDownAngle, 0, t);
+
+		_animator.GetBoneTransform(HumanBodyBones.LeftEye).Rotate(lookDownAngle, 0, 0);
+		_animator.GetBoneTransform(HumanBodyBones.RightEye).Rotate(lookDownAngle, 0, 0);
+
+		UpdateStateTiming(LookingUpDuration, State.Inactive);
+	}
+
+	private float T(float duration)
+	{
+		return (Time.time - _lastEventTime) / duration;
+	}
+
+	private void UpdateStateTiming(float duration, State nextState)
+	{
+		var time = Time.time;
+		if (_lastEventTime + duration >= time) return;
+
+		_lastEventTime = time;
+		_state = nextState;
 	}
 }
