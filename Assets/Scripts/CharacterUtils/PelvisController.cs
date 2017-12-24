@@ -6,13 +6,13 @@ public class PelvisSettings : ControllerSettings
 {
 	public Vector3 HipsForward;
 	public Vector3 HipsThrustCompensation;
+	public float BodyThrustRotation;
 }
 
 public class PelvisController
 {
-	private const float NearClipping = 0.02f;
-	private const float EyesToMouthDistance = 0.02f;
-	private const float EyesToBellyMinDistance = 0.14f;
+	private const float EyesToMouthDistance = 0.025f;
+	private const float EyesToBellyMinDistance = 0.18f;
 	private const float ReachDistance = 0.25f;
 	private const float ReachDuration = 1.2f;
 	private const float HumpSpeed = 4f;
@@ -26,6 +26,8 @@ public class PelvisController
 	private readonly InverseKinematicsWeightHelper _reach;
 
 	private Vector3 _initialBodyPosition;
+	private Quaternion _initialBodyRotation;
+	private bool _ready;
 
 	public PelvisController(PelvisSettings settings, Animator animator, Transform head, Transform ground)
 	{
@@ -40,33 +42,28 @@ public class PelvisController
 	{
 		if (!_settings.Enabled) return;
 
-		//TODO: Figure out a better way to "aim" at the player's mouth
 		//TODO: Accelerate humping based on reach time
-		//TODO: Allow moving up to the max "standing" position (Wiggle room only for "withinReach")
 		//TODO: Introduce a delay when moving away, but make sure we don't go through when moving forward
 
-		if (_initialBodyPosition == Vector3.zero)
+		if (!_ready)
+		{
 			_initialBodyPosition = _animator.bodyPosition - new Vector3(0, BodyUpWiggleRoom, 0);
+			_initialBodyRotation = _animator.bodyRotation;
+			_ready = true;
+		}
 
 		var adjustedInitialBodyPosition = _initialBodyPosition + new Vector3(0, _ground.position.y, 0);
-
 		var target = _head.position + _head.TransformDirection(Vector3.down) * EyesToMouthDistance;
-
 		var withinReach = adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		var humpUnit = (Mathf.Sin(Time.time * HumpSpeed) + 1) / 2f;
 		var humpDistance = humpUnit * HumpDistance;
-		target = new Vector3(target.x, target.y, target.z + humpDistance) + _head.TransformDirection(Vector3.forward) * EyesToBellyMinDistance;
-		// Avoid near clipping (not sure if this works)
-		if (target.z < _head.position.z + NearClipping)
-			target.z = _head.position.z + NearClipping;
-
-		_animator.bodyPosition = Vector3.Lerp(adjustedInitialBodyPosition, target, weight);
-
-		var weightedHumpUnit = Mathf.SmoothStep(0f, humpUnit, weight);
-
-		_animator.bodyRotation = _animator.rootRotation * Quaternion.AngleAxis(weightedHumpUnit * 20f, Vector3.right);
+		var weightedHumpUnit = humpUnit * weight;
+		var targetBodyPosition = _head.position + _head.TransformDirection(Vector3.forward) * (EyesToBellyMinDistance + humpDistance) + _head.TransformDirection(Vector3.down) * EyesToMouthDistance;
+		_animator.bodyPosition = Vector3.Slerp(_initialBodyPosition, targetBodyPosition, weight);
+		var targetBodyRotation = Quaternion.LookRotation(-(_animator.bodyPosition - _head.position)) * Quaternion.AngleAxis((weightedHumpUnit - 0.5f) * _settings.BodyThrustRotation, Vector3.right);
+		_animator.bodyRotation = Quaternion.Slerp(_initialBodyRotation, targetBodyRotation, weight);
 
 		// Compensate for body rotation
 		_animator.SetBoneLocalRotation(HumanBodyBones.Hips, Quaternion.Euler(_settings.HipsForward) * Quaternion.Euler(_settings.HipsThrustCompensation * weightedHumpUnit));
