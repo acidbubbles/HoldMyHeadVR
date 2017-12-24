@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.VR;
 
-public class ToolControl : MonoBehaviour
+public class DebugCameraControl : MonoBehaviour
 {
 	private Transform _hmd;
 
@@ -18,8 +19,8 @@ public class ToolControl : MonoBehaviour
 	{
 		if (ControlHmd)
 		{
-			_hmd.position = transform.position;
-			_hmd.rotation = transform.rotation;
+			_hmd.parent.position = -InputTracking.GetLocalPosition(VRNode.CenterEye) + transform.position;
+			_hmd.parent.rotation = Quaternion.Inverse(InputTracking.GetLocalRotation(VRNode.CenterEye)) * transform.rotation;
 		}
 	}
 }

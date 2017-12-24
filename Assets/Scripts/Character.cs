@@ -24,7 +24,7 @@ public class Character : MonoBehaviour
 	private BreathingController _breathingController;
 	// ReSharper restore InconsistentNaming
 
-	public void Awake()
+	public void Start()
 	{
 		var animator = GetComponent<Animator>();
 		if(animator == null) throw new NullReferenceException("An Animator is required");
@@ -45,11 +45,9 @@ public class Character : MonoBehaviour
 		_upperBodyController = new UpperBodyController(upperBody, animator, viewTarget);
 		_breathingController = new BreathingController(breathing, skinnedMeshRenderer);
 		_eyesController = new EyesController(eyes, viewTarget, animator, skinnedMeshRenderer);
-	}
 
-	public void Start()
-	{
 		_eyesController.Start();
+
 		_ready = true;
 	}
 
@@ -58,8 +56,7 @@ public class Character : MonoBehaviour
 		if (!_ready) return;
 
 		// OTHER TODOS
-		//TODO: Close top lid when looking down
-		//TODO: Tilt head when player's head come close, and close eyes (kissing), potentially blendshapes
+		//TODO: Tilt head when player's head come close, and close eyes (kissing, partially done), potentially blendshapes
 		//TODO: Move the podium up or down
 		//TODO: Reflections
 		//TODO: Switch lighting
