@@ -13,7 +13,6 @@ public class BreathingController
 
 	private readonly BreathingSettings _settings;
 	private readonly SkinnedMeshRenderer _skinnedMeshRenderer;
-	private readonly BlendShapeEntry[] _breathingBlendShapes;
 	private const float BreathingSpeed = 2f;
 
 	public BreathingController(BreathingSettings settings, SkinnedMeshRenderer skinnedMeshRenderer)
@@ -26,11 +25,14 @@ public class BreathingController
 	{
 		if (!_settings.Enabled) return;
 
-		var breatheUnit = (Mathf.Sin(Time.time * BreathingSpeed) + 1) / 2f;
-		foreach (var blendShape in _settings.BreathingBlendShapes)
+		BreatheUnit = (Mathf.Sin(Time.time * BreathingSpeed) + 1) / 2f;
+
+		if (_skinnedMeshRenderer != null)
 		{
-			_skinnedMeshRenderer.SetBlendShapeWeight(blendShape.index, blendShape.value * breatheUnit);
+			foreach (var blendShape in _settings.BreathingBlendShapes)
+			{
+				_skinnedMeshRenderer.SetBlendShapeWeight(blendShape.index, blendShape.value * BreatheUnit);
+			}
 		}
-		BreatheUnit = breatheUnit;
 	}
 }

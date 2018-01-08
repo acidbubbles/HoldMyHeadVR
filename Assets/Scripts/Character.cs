@@ -33,8 +33,7 @@ public class Character : MonoBehaviour
 		if(mainCamera == null) throw new NullReferenceException("A main camera is required");
 		var viewTarget = mainCamera.transform;
 
-		var skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().First(x => x.sharedMesh.blendShapeCount > 0);
-		if(skinnedMeshRenderer == null) throw new NullReferenceException("A child component with a SkinnedMeshRenderer that contains at least one blend shape is required");
+		var skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().FirstOrDefault(x => x.sharedMesh.blendShapeCount > 0);
 
 		var ground = GameObject.FindGameObjectWithTag("Ground");
 		if(ground == null) throw new NullReferenceException("A GameObject with tag Ground is required");

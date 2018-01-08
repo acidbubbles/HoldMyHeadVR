@@ -61,13 +61,15 @@ public class EyesController
 
 	public void Start()
 	{
+		if (_skinnedMeshRenderer == null) return;
+
 		_topLidOpenedValue = _topLidFullOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.TopLidIndex);
 		_bottomLidOpenedValue = _bottomLidFullOpenedValue = _skinnedMeshRenderer.GetBlendShapeWeight(_settings.BottomLidIndex);
 	}
 
 	public void LateUpdate()
 	{
-		if (!_settings.Enabled) return;
+		if (!_settings.Enabled || _skinnedMeshRenderer == null) return;
 
 		switch (_state)
 		{
