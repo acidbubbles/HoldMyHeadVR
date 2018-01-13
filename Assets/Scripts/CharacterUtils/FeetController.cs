@@ -3,7 +3,8 @@
 public class FeetController
 {
 	private const float LegSpread = 0.22f;
-	private const float KneesStraightness = 50f;
+	private const float KneeSpread = 2.7f;
+	private const float KneesStraightness = 0.8f;
 	private const float GroundOffset = -.15f;
 
 	private readonly ControllerSettings _settings;
@@ -24,14 +25,14 @@ public class FeetController
 		PositionFoot(
 			AvatarIKGoal.LeftFoot,
 			AvatarIKHint.LeftKnee,
-			_ground.position - new Vector3(-LegSpread, GroundOffset, 0),
+			_animator.rootPosition - _animator.rootRotation * new Vector3(LegSpread, GroundOffset, 0),
 			_animator.rootRotation
 		);
 
 		PositionFoot(
 			AvatarIKGoal.RightFoot,
 			AvatarIKHint.RightKnee,
-			_ground.position - new Vector3(LegSpread, GroundOffset, 0),
+			_animator.rootPosition - _animator.rootRotation * new Vector3(-LegSpread, GroundOffset, 0),
 			_animator.rootRotation
 		);
 	}
@@ -39,7 +40,8 @@ public class FeetController
 	private void PositionFoot(AvatarIKGoal foot, AvatarIKHint knee, Vector3 position, Quaternion forward)
 	{
 		_animator.SetIKHintPositionWeight(knee, 1);
-		_animator.SetIKHintPosition(knee, new Vector3(position.x, (_animator.bodyPosition.y - position.y) / 2, _animator.bodyPosition.z - KneesStraightness));
+		var hintPosition = _animator.bodyPosition + _animator.rootRotation * new Vector3((_animator.bodyPosition.x - position.x) / 2 * KneeSpread, (_animator.bodyPosition.y - position.y) / -2, KneesStraightness);
+		_animator.SetIKHintPosition(knee, hintPosition);
 
 		_animator.SetIKPositionWeight(foot, 1);
 		_animator.SetIKPosition(foot, position);
