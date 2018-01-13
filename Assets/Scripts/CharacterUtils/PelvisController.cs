@@ -39,7 +39,7 @@ public class PelvisController
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
-	public void Update()
+	public void Update(FrameContext context)
 	{
 		if (!_settings.Enabled) return;
 
@@ -56,7 +56,7 @@ public class PelvisController
 
 		var adjustedInitialBodyPosition = _initialBodyPosition + new Vector3(0, _ground.position.y, 0);
 		var target = _head.position + _head.TransformDirection(Vector3.down) * _settings.EyesToMouthDistance;
-		var withinReach = adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
+		var withinReach = context.IsLookedAt && adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		if (weight <= 0)

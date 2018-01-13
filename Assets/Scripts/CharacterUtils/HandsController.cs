@@ -22,13 +22,13 @@ public class HandsController
 		_reach = new InverseKinematicsWeightHelper();
 	}
 
-	public void Update()
+	public void Update(FrameContext context)
 	{
 		if (!_settings.Enabled) return;
 
 		var shouldersCenter = (_animator.GetBoneTransform(HumanBodyBones.LeftShoulder).position + _animator.GetBoneTransform(HumanBodyBones.RightShoulder).position) / 2 + Vector3.down * LowerShoulderCenter;
 
-		var withinReach = Vector3.Distance(shouldersCenter, _head.position) < ReachDistance;
+		var withinReach = context.IsLookedAt && Vector3.Distance(shouldersCenter, _head.position) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
 
 		PositionHand(AvatarIKGoal.RightHand, _head, weight, -1);
