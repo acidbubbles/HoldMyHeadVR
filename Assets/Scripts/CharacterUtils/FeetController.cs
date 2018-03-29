@@ -9,13 +9,11 @@ public class FeetController
 
 	private readonly ControllerSettings _settings;
 	private readonly Animator _animator;
-	private readonly Transform _ground;
 
 	public FeetController(ControllerSettings settings, Animator animator, Transform ground)
 	{
 		_settings = settings;
 		_animator = animator;
-		_ground = ground;
 	}
 
 	public void Update()

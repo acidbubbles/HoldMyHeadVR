@@ -3,7 +3,7 @@
 public class UpperBodyController
 {
 	private const float FullBodyWeightDistance = 0.4f;
-	private const float BaseBodyWeight = 0.25f;
+	private const float BaseBodyWeight = 0.35f;
 	private const float BreatheBodyWeight = 0.05f;
 	private const float HeadWeight = 0.5f;
 	private readonly ControllerSettings _settings;

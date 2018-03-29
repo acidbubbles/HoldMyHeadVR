@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
 
@@ -23,7 +23,7 @@ public class Character : MonoBehaviour
 	[Header("Controllers")]
 	public PelvisSettings pelvis;
 	public ControllerSettings upperBody;
-	public ControllerSettings hands;
+	public HandsSettings hands;
 	public ControllerSettings feet;
 	public BreathingSettings breathing;
 	public EyesSettings eyes;
@@ -62,6 +62,9 @@ public class Character : MonoBehaviour
 
 		// OTHER TODOS
 		//TODO: Tilt head when player's head come close, and close eyes (kissing, partially done), potentially blendshapes
+		//TODO: Tilt down more when the player is low
+		//TODO: Smoother humping and acceleration
+		//TODO: Add some variety: Different breathing speed, different body bending, different faces
 		//TODO: Move the podium up or down
 		//TODO: Reflections
 		//TODO: Switch lighting
