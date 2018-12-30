@@ -50,7 +50,7 @@ public class HandsController
 		var handOnHeadRotation = Quaternion.LookRotation(target.TransformDirection(Vector3.back), target.TransformDirection(Vector3.right * side));
 
 		var idleHandPosition = _animator.bodyPosition + _animator.bodyRotation * new Vector3(_settings.HandIdlePosition.x * side, _settings.HandIdlePosition.y, _settings.HandIdlePosition.z);
-		var idleHandRotation = Quaternion.Euler(_settings.HandIdleRotation * -1);
+		var idleHandRotation = Quaternion.Euler(new Vector3(_settings.HandIdleRotation.x, _settings.HandIdleRotation.y * side + _animator.rootRotation.eulerAngles.y, _settings.HandIdleRotation.z));
 
 		var position = Vector3.Slerp(idleHandPosition, handOnHeadPosition, weight);
 		var rotation = Quaternion.Slerp(idleHandRotation, handOnHeadRotation, weight);
