@@ -14,6 +14,8 @@ public class Character : MonoBehaviour
 	private HandsController _handsController;
 	private PelvisController _pelvisController;
 	private UpperBodyController _upperBodyController;
+	private BreathingController _breathingController;
+	private MouthAudioSource.Ticket _mouthAudioSourceTicket;
 
 	// Reusable objects
 	private Animator _animator;
@@ -27,7 +29,8 @@ public class Character : MonoBehaviour
 	public ControllerSettings feet;
 	public BreathingSettings breathing;
 	public EyesSettings eyes;
-	private BreathingController _breathingController;
+	[Header("Targets")]
+	public AudioSource mouthAudioSource;
 	// ReSharper restore InconsistentNaming
 
 	public void Start()
@@ -52,6 +55,8 @@ public class Character : MonoBehaviour
 		_eyesController = new EyesController(eyes, _viewTarget, _animator, skinnedMeshRenderer);
 
 		_eyesController.Start();
+
+		_mouthAudioSourceTicket = mouthAudioSource.GetComponent<MouthAudioSource>().GetTicket();
 
 		_ready = true;
 	}
@@ -102,5 +107,7 @@ public class Character : MonoBehaviour
 		_breathingController.LateUpdate();
 		_eyesController.LateUpdate();
 		_upperBodyController.LateUpdate();
+
+		_mouthAudioSourceTicket.Update(_pelvisController.IsHumping);
 	}
 }

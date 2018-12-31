@@ -30,6 +30,8 @@ public class PelvisController
 	private Quaternion _initialHipsRotation;
 	private bool _ready;
 
+	public bool IsHumping { get; set; }
+
 	public PelvisController(PelvisSettings settings, Animator animator, Transform head, Transform ground)
 	{
 		_settings = settings;
@@ -58,6 +60,8 @@ public class PelvisController
 		var target = _head.position + _head.TransformDirection(Vector3.down) * _settings.EyesToMouthDistance;
 		var withinReach = context.IsLookedAt && adjustedInitialBodyPosition.y + BodyUpWiggleRoom >= target.y && Vector3.Distance(adjustedInitialBodyPosition, target) < ReachDistance;
 		var weight = _reach.GetWeight(withinReach, ReachDuration);
+
+		IsHumping = weight > 0.8f;
 
 		if (weight <= 0)
 		{
