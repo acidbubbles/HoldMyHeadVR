@@ -7,6 +7,7 @@ Prototype of a female pov, futa BJ interactive animation.
 Map: https://assetstore.unity.com/packages/3d/characters/free-basement-package-mobile-66032
 Hot dog: https://sfmlab.com/item/1149/
 Widowmaker: https://twitter.com/Ellowas
+Inspiration: https://github.com/oLowRider/VRModelViewer
 
 ## License
 
