@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.VR;
 
 public class GameControl : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class GameControl : MonoBehaviour
 	public void Start()
 	{
 		podiumHeight = podium.transform.position.y;
+		VRSettings.renderScale = 1.5f;
 	}
 
 	public void Update()
