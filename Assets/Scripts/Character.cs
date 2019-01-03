@@ -17,6 +17,11 @@ public class Character : MonoBehaviour
 	private BreathingController _breathingController;
 	private MouthAudioSource.Ticket _mouthAudioSourceTicket;
 
+	// Children
+
+	private AudioSource _breathingAudioSource;
+	private AudioSource _moaningAudioSource;
+
 	// Reusable objects
 	private Animator _animator;
 	private Transform _viewTarget;
@@ -42,6 +47,9 @@ public class Character : MonoBehaviour
 		if(mainCamera == null) throw new NullReferenceException("A main camera is required");
 		_viewTarget = mainCamera.transform;
 
+		var audioSources = GetComponentsInChildren<AudioSource>();
+		_breathingAudioSource = audioSources.First(c => c.tag == "Audio_Breathing");
+		_moaningAudioSource = audioSources.First(c => c.tag == "Audio_Moaning");
 		var skinnedMeshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>().FirstOrDefault(x => x.sharedMesh.blendShapeCount > 0);
 
 		var ground = GameObject.FindGameObjectWithTag("Ground");
@@ -109,5 +117,15 @@ public class Character : MonoBehaviour
 		_upperBodyController.LateUpdate();
 
 		_mouthAudioSourceTicket.Update(_pelvisController.IsHumping);
+		if (_pelvisController.IsHumping && !_moaningAudioSource.isPlaying)
+		{
+			_moaningAudioSource.Play();
+			_breathingAudioSource.Pause();
+		}
+		else if (!_pelvisController.IsHumping && !_breathingAudioSource.isPlaying)
+		{
+			_moaningAudioSource.Stop();
+			_breathingAudioSource.Play();
+		}
 	}
 }
